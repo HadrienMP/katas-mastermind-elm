@@ -1,21 +1,16 @@
 module Domain.Core exposing
-    ( Key(..)
-    , Result
+    ( Result
     , countRightPlace
     , countWrongPlace
     , score
     )
 
-import Domain.Pin exposing (Pin)
+import Domain.Key exposing (Key(..))
 import Domain.Secret exposing (Secret)
 
 
 type alias Result =
     { rightPlace : Int, wrongPlace : Int }
-
-
-type Key
-    = Key (List Pin)
 
 
 score : Key -> Secret -> Result
@@ -25,7 +20,7 @@ score key secret =
             countRightPlace secret key
     in
     { rightPlace = count
-    , wrongPlace = countWrongPlace unmatched key
+    , wrongPlace = countWrongPlace unmatched.secret unmatched.key
     }
 
 
@@ -35,8 +30,7 @@ score key secret =
 
 countWrongPlace : Secret -> Key -> Int
 countWrongPlace secret key =
-    key
-        |> countWrongPlaceRec 0 secret
+    countWrongPlaceRec 0 secret key
 
 
 countWrongPlaceRec : Int -> Secret -> Key -> Int
@@ -79,16 +73,31 @@ removeOnceFromRec end el start =
 -- Right place
 
 
-countRightPlace : Secret -> Key -> { count : Int, unmatched : Secret }
+type alias Unmatched =
+    { secret : Secret, key : Key }
+
+
+type alias RightPlaceResult =
+    { count : Int, unmatched : Unmatched }
+
+
+countRightPlace : Secret -> Key -> RightPlaceResult
 countRightPlace secret key =
-    countRightPlaceRec key secret { count = 0, unmatched = Domain.Secret.empty }
+    countRightPlaceRec key
+        secret
+        { count = 0
+        , unmatched =
+            { secret = Domain.Secret.empty
+            , key = Key []
+            }
+        }
 
 
 countRightPlaceRec :
     Key
     -> Secret
-    -> { count : Int, unmatched : Secret }
-    -> { count : Int, unmatched : Secret }
+    -> RightPlaceResult
+    -> RightPlaceResult
 countRightPlaceRec (Key key) (Domain.Secret.Secret secret) acc =
     case ( key, secret ) of
         ( keyPin :: restOfKey, secretPin :: restOfSecret ) ->
@@ -99,8 +108,17 @@ countRightPlaceRec (Key key) (Domain.Secret.Secret secret) acc =
                     { acc | count = acc.count + 1 }
 
                  else
+                    let
+                        unmatchedKeyPins =
+                            case acc.unmatched.key of
+                                Key it ->
+                                    it
+                    in
                     { acc
-                        | unmatched = Domain.Secret.append secretPin acc.unmatched
+                        | unmatched =
+                            { secret = Domain.Secret.append secretPin acc.unmatched.secret
+                            , key = Key <| keyPin :: unmatchedKeyPins
+                            }
                     }
                 )
 

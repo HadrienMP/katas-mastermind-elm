@@ -1,6 +1,7 @@
 module MastermindSpec exposing (rightPlaceSuite, suite, wrongPlaceSuite)
 
 import Domain.Core exposing (..)
+import Domain.Key exposing (Key(..))
 import Domain.Pin exposing (..)
 import Domain.Secret exposing (Secret(..))
 import Expect
@@ -43,6 +44,11 @@ suite =
                     (Key [ Blue, Blue, Green ])
                     (Secret [ Blue, Red, Purple ])
                     |> Expect.equal { rightPlace = 1, wrongPlace = 0 }
+        , test "Key pins already matched don't count as in the wrong place" <|
+            \_ ->
+                Secret [ Red, Red, Red, Black ]
+                    |> score (Key [ Red, Red, Blue, Blue ])
+                    |> Expect.equal { rightPlace = 2, wrongPlace = 0 }
         ]
 
 
