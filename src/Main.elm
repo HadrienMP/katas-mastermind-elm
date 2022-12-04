@@ -139,15 +139,13 @@ view model =
             Html.div
                 [ Attr.css
                     [ Css.padding <| Css.rem 1
-                    , Css.margin2 (Css.rem 3) Css.zero
+                    , Css.margin2 (Css.rem 3) Css.auto
                     , Css.border3 (Css.px 2) Css.solid <| Css.hex "#000"
                     , Css.fontFamily Css.sansSerif
                     , Css.displayFlex
                     , Css.flexDirection Css.column
                     , UI.Flex.defaultGap
-                    , Css.position Css.absolute
-                    , Css.left <| Css.vw 50
-                    , Css.transform <| Css.translateX (Css.pct -50)
+                    , Css.maxWidth Css.fitContent
                     ]
                 ]
                 [ UI.Typography.title "Mastermind"
