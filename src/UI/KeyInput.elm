@@ -1,4 +1,4 @@
-module UI.KeyInput exposing (KeyInput, clear, empty, parse, pins, put, view)
+module UI.KeyInput exposing (KeyInput, clear, empty, put, view)
 
 import Css
 import Dict exposing (Dict)
