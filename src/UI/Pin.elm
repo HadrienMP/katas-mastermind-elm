@@ -1,9 +1,9 @@
 module UI.Pin exposing (display, slot)
 
 import Css
+import Domain.Pin exposing (Pin(..))
 import Html.Styled as Html
 import Html.Styled.Attributes as Attr
-import Pin exposing (Pin)
 
 
 display : Pin -> Html.Html msg
@@ -16,22 +16,22 @@ display current =
                    , Css.backgroundColor <|
                         Css.hex <|
                             case current of
-                                Pin.Red ->
+                                Red ->
                                     "#e32227"
 
-                                Pin.Blue ->
+                                Blue ->
                                     "#0476d0"
 
-                                Pin.Green ->
+                                Green ->
                                     "#008080"
 
-                                Pin.Black ->
+                                Black ->
                                     "#000000"
 
-                                Pin.White ->
+                                White ->
                                     "#f5f5f5"
 
-                                Pin.Purple ->
+                                Purple ->
                                     "#ff00ff"
                    ]
             )

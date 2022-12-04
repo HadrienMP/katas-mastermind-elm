@@ -1,8 +1,8 @@
 module MastermindSpec exposing (rightPlaceSuite, suite, wrongPlaceSuite)
 
-import Core exposing (..)
+import Domain.Core exposing (..)
+import Domain.Pin exposing (..)
 import Expect
-import Pin exposing (..)
 import Test exposing (Test, describe, test)
 
 

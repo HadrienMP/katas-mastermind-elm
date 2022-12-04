@@ -2,15 +2,15 @@ module Main exposing (Model, Msg, main)
 
 import Browser
 import Browser.Navigation as Nav
-import Core exposing (Key, Secret)
 import Css
+import Domain.Core exposing (Key, Secret)
+import Domain.Pin exposing (Pin)
 import Html.Styled as Html
 import Html.Styled.Attributes as Attr
 import Html.Styled.Events exposing (onClick)
-import KeyInput exposing (KeyInput)
-import Pin exposing (Pin)
 import Random
 import Random.List
+import UI.KeyInput exposing (KeyInput)
 import UI.Pin
 import UI.Result
 import Url
@@ -31,7 +31,7 @@ main =
 type alias Model =
     { navkey : Nav.Key
     , url : Url.Url
-    , results : List ( Key, Core.Result )
+    , results : List ( Key, Domain.Core.Result )
     , input : KeyInput
     , secret : Secret
     , selected : Maybe Pin
@@ -49,14 +49,14 @@ init _ url key =
     ( { navkey = key
       , url = url
       , results = []
-      , input = KeyInput.empty size
-      , secret = Core.Secret []
+      , input = UI.KeyInput.empty size
+      , secret = Domain.Core.Secret []
       , selected = Nothing
       , cheat = False
       }
-    , (Random.List.choose Pin.all
+    , (Random.List.choose Domain.Pin.all
         |> Random.map Tuple.first
-        |> Random.map (Maybe.withDefault Pin.Red)
+        |> Random.map (Maybe.withDefault Domain.Pin.Red)
       )
         |> List.repeat size
         |> List.foldl
@@ -69,7 +69,7 @@ init _ url key =
                     listGenerator
             )
             (Random.constant [])
-        |> Random.map Core.Secret
+        |> Random.map Domain.Core.Secret
         |> Random.generate SecretGenerated
     )
 
@@ -95,7 +95,7 @@ update msg model =
 
         PlacedAt position ->
             ( { model
-                | input = KeyInput.put { position = position, pin = model.selected } model.input
+                | input = UI.KeyInput.put { position = position, pin = model.selected } model.input
               }
             , Cmd.none
             )
@@ -106,10 +106,10 @@ update msg model =
         Check key ->
             ( { model
                 | results =
-                    ( key, Core.score key model.secret )
+                    ( key, Domain.Core.score key model.secret )
                         :: model.results
                 , selected = Nothing
-                , input = KeyInput.clear model.input
+                , input = UI.KeyInput.clear model.input
               }
             , Cmd.none
             )
@@ -151,7 +151,7 @@ view model =
                 , Html.div [ onClick Cheat ]
                     [ if model.cheat then
                         case model.secret of
-                            Core.Secret secret ->
+                            Domain.Core.Secret secret ->
                                 Html.div [ Attr.css [ Css.displayFlex, defaultGap ] ]
                                     [ secret |> List.map UI.Pin.display |> pinBox
                                     , Html.button
@@ -167,7 +167,7 @@ view model =
                             [ Html.text "Cheat" ]
                     ]
                 , verticalSeparator
-                , Pin.all
+                , Domain.Pin.all
                     |> List.map (actionPin model.selected)
                     |> pinBox
                 , viewInput model
@@ -211,11 +211,11 @@ viewInput model =
             , defaultGap
             ]
         ]
-        [ KeyInput.pins model.input
+        [ UI.KeyInput.pins model.input
             |> List.map selectionPin
             |> pinBox
         , Html.button
-            (case KeyInput.parse model.input of
+            (case UI.KeyInput.parse model.input of
                 Just key ->
                     [ onClick <| Check key ]
 
@@ -255,8 +255,8 @@ actionPin selected current =
         [ UI.Pin.display current ]
 
 
-viewResult : ( Key, Core.Result ) -> Html.Html Msg
-viewResult ( Core.Key key, { rightPlace, wrongPlace } ) =
+viewResult : ( Key, Domain.Core.Result ) -> Html.Html Msg
+viewResult ( Domain.Core.Key key, { rightPlace, wrongPlace } ) =
     Html.div
         [ Attr.css
             [ Css.displayFlex

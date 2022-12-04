@@ -1,4 +1,4 @@
-module Core exposing
+module Domain.Core exposing
     ( Key(..)
     , Result
     , Secret(..)
@@ -7,7 +7,7 @@ module Core exposing
     , score
     )
 
-import Pin exposing (Pin)
+import Domain.Pin exposing (Pin)
 
 
 type alias Result =

@@ -1,4 +1,4 @@
-module Pin exposing (Pin(..), all)
+module Domain.Pin exposing (Pin(..), all)
 
 
 type Pin

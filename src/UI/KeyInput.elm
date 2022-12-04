@@ -1,12 +1,12 @@
-module KeyInput exposing (KeyInput, clear, empty, parse, pins, put)
+module UI.KeyInput exposing (KeyInput, clear, empty, parse, pins, put)
 
-import Core exposing (Key)
 import Dict exposing (Dict)
-import Pin
+import Domain.Core exposing (Key)
+import Domain.Pin exposing (Pin)
 
 
 type alias Internal =
-    { size : Int, content : Dict Int Pin.Pin }
+    { size : Int, content : Dict Int Pin }
 
 
 type KeyInput
@@ -28,12 +28,12 @@ sizeOf =
     open >> .size
 
 
-contentOf : KeyInput -> Dict Int Pin.Pin
+contentOf : KeyInput -> Dict Int Pin
 contentOf =
     open >> .content
 
 
-put : { position : Int, pin : Maybe Pin.Pin } -> KeyInput -> KeyInput
+put : { position : Int, pin : Maybe Pin } -> KeyInput -> KeyInput
 put { position, pin } input =
     if position < sizeOf input then
         let
@@ -67,7 +67,7 @@ parse input =
                         Nothing
             )
             (Just [])
-        |> Maybe.map Core.Key
+        |> Maybe.map Domain.Core.Key
 
 
 clear : KeyInput -> KeyInput
@@ -75,7 +75,7 @@ clear (KeyInput internal) =
     KeyInput { internal | content = Dict.empty }
 
 
-pins : KeyInput -> List ( Int, Maybe Pin.Pin )
+pins : KeyInput -> List ( Int, Maybe Pin )
 pins (KeyInput internal) =
     List.range 0 (internal.size - 1)
         |> List.map (\index -> ( index, Dict.get index internal.content ))
