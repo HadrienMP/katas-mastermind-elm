@@ -1,4 +1,4 @@
-module Domain.Key exposing (..)
+module Domain.Key exposing (Key(..), append, empty)
 
 import Domain.Pin exposing (Pin)
 
@@ -15,8 +15,3 @@ append pin (Key secret) =
 empty : Key
 empty =
     Key []
-
-
-open : Key -> List Pin
-open (Key secret) =
-    secret

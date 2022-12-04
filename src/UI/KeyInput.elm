@@ -2,7 +2,7 @@ module UI.KeyInput exposing (KeyInput, clear, empty, put, view)
 
 import Css
 import Dict exposing (Dict)
-import Domain.Core exposing (Key)
+import Domain.Key exposing (Key(..))
 import Domain.Pin exposing (Pin)
 import Html.Styled as Html exposing (Html)
 import Html.Styled.Attributes as Attr
@@ -73,7 +73,7 @@ parse input =
                         Nothing
             )
             (Just [])
-        |> Maybe.map Domain.Core.Key
+        |> Maybe.map Key
 
 
 clear : KeyInput -> KeyInput

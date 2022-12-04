@@ -3,7 +3,8 @@ module Main exposing (Model, Msg, main)
 import Browser
 import Browser.Navigation as Nav
 import Css
-import Domain.Core exposing (Key)
+import Domain.Core
+import Domain.Key
 import Domain.Pin exposing (Pin)
 import Domain.Secret exposing (Secret)
 import Html.Styled as Html exposing (Html)
@@ -34,7 +35,7 @@ main =
 type alias Model =
     { navkey : Nav.Key
     , url : Url.Url
-    , results : List ( Key, Domain.Core.Result )
+    , results : List ( Domain.Key.Key, Domain.Core.Result )
     , input : KeyInput
     , secret : Secret
     , selected : Maybe Pin
@@ -80,7 +81,7 @@ init _ url key =
 type Msg
     = PlacedAt Int
     | Selected Pin
-    | Check Key
+    | Check Domain.Key.Key
     | Cheat
     | SecretGenerated Secret
     | UrlRequested Browser.UrlRequest
@@ -226,8 +227,8 @@ actionPin selected current =
         [ UI.Pin.display current ]
 
 
-viewResult : ( Key, Domain.Core.Result ) -> Html Msg
-viewResult ( Domain.Core.Key key, { rightPlace, wrongPlace } ) =
+viewResult : ( Domain.Key.Key, Domain.Core.Result ) -> Html Msg
+viewResult ( Domain.Key.Key key, { rightPlace, wrongPlace } ) =
     Html.div
         [ Attr.css
             [ Css.displayFlex
