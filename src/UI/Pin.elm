@@ -1,9 +1,20 @@
-module UI.Pin exposing (display, slot)
+module UI.Pin exposing (display, pinBox, slot)
 
 import Css
 import Domain.Pin exposing (Pin(..))
 import Html.Styled as Html
 import Html.Styled.Attributes as Attr
+import UI.Flex
+
+
+pinBox : List (Html.Html msg) -> Html.Html msg
+pinBox =
+    Html.div
+        [ Attr.css
+            [ Css.displayFlex
+            , UI.Flex.defaultGap
+            ]
+        ]
 
 
 display : Pin -> Html.Html msg

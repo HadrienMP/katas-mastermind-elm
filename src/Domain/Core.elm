@@ -1,13 +1,13 @@
 module Domain.Core exposing
     ( Key(..)
     , Result
-    , Secret(..)
     , countRightPlace
     , countWrongPlace
     , score
     )
 
 import Domain.Pin exposing (Pin)
+import Domain.Secret exposing (Secret)
 
 
 type alias Result =
@@ -16,15 +16,6 @@ type alias Result =
 
 type Key
     = Key (List Pin)
-
-
-type Secret
-    = Secret (List Pin)
-
-
-appendToSecret : Pin -> Secret -> Secret
-appendToSecret pin (Secret secret) =
-    Secret <| secret ++ [ pin ]
 
 
 score : Key -> Secret -> Result
@@ -49,7 +40,7 @@ countWrongPlace secret key =
 
 
 countWrongPlaceRec : Int -> Secret -> Key -> Int
-countWrongPlaceRec acc (Secret secret) (Key guess) =
+countWrongPlaceRec acc (Domain.Secret.Secret secret) (Key guess) =
     case guess of
         firstKeyPin :: restOfKey ->
             let
@@ -58,7 +49,7 @@ countWrongPlaceRec acc (Secret secret) (Key guess) =
             in
             countWrongPlaceRec
                 (acc + List.length secret - List.length secretLeft)
-                (Secret secretLeft)
+                (Domain.Secret.Secret secretLeft)
                 (Key restOfKey)
 
         [] ->
@@ -90,7 +81,7 @@ removeOnceFromRec end el start =
 
 countRightPlace : Secret -> Key -> { count : Int, unmatched : Secret }
 countRightPlace secret key =
-    countRightPlaceRec key secret { count = 0, unmatched = Secret [] }
+    countRightPlaceRec key secret { count = 0, unmatched = Domain.Secret.empty }
 
 
 countRightPlaceRec :
@@ -98,18 +89,18 @@ countRightPlaceRec :
     -> Secret
     -> { count : Int, unmatched : Secret }
     -> { count : Int, unmatched : Secret }
-countRightPlaceRec (Key key) (Secret secret) acc =
+countRightPlaceRec (Key key) (Domain.Secret.Secret secret) acc =
     case ( key, secret ) of
         ( keyPin :: restOfKey, secretPin :: restOfSecret ) ->
             countRightPlaceRec
                 (Key restOfKey)
-                (Secret restOfSecret)
+                (Domain.Secret.Secret restOfSecret)
                 (if keyPin == secretPin then
                     { acc | count = acc.count + 1 }
 
                  else
                     { acc
-                        | unmatched = appendToSecret secretPin acc.unmatched
+                        | unmatched = Domain.Secret.append secretPin acc.unmatched
                     }
                 )
 

@@ -2,6 +2,7 @@ module MastermindSpec exposing (rightPlaceSuite, suite, wrongPlaceSuite)
 
 import Domain.Core exposing (..)
 import Domain.Pin exposing (..)
+import Domain.Secret exposing (Secret(..))
 import Expect
 import Test exposing (Test, describe, test)
 

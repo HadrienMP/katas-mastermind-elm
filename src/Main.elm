@@ -3,16 +3,19 @@ module Main exposing (Model, Msg, main)
 import Browser
 import Browser.Navigation as Nav
 import Css
-import Domain.Core exposing (Key, Secret)
+import Domain.Core exposing (Key)
 import Domain.Pin exposing (Pin)
-import Html.Styled as Html
+import Domain.Secret exposing (Secret)
+import Html.Styled as Html exposing (Html)
 import Html.Styled.Attributes as Attr
 import Html.Styled.Events exposing (onClick)
 import Random
 import Random.List
+import UI.Flex
 import UI.KeyInput exposing (KeyInput)
 import UI.Pin
 import UI.Result
+import UI.Typography
 import Url
 
 
@@ -50,7 +53,7 @@ init _ url key =
       , url = url
       , results = []
       , input = UI.KeyInput.empty size
-      , secret = Domain.Core.Secret []
+      , secret = Domain.Secret.Secret []
       , selected = Nothing
       , cheat = False
       }
@@ -69,7 +72,7 @@ init _ url key =
                     listGenerator
             )
             (Random.constant [])
-        |> Random.map Domain.Core.Secret
+        |> Random.map Domain.Secret.Secret
         |> Random.generate SecretGenerated
     )
 
@@ -141,42 +144,29 @@ view model =
                     , Css.fontFamily Css.sansSerif
                     , Css.displayFlex
                     , Css.flexDirection Css.column
-                    , defaultGap
+                    , UI.Flex.defaultGap
                     , Css.position Css.absolute
                     , Css.left <| Css.vw 50
                     , Css.transform <| Css.translateX (Css.pct -50)
                     ]
                 ]
-                [ title
-                , Html.div [ onClick Cheat ]
-                    [ if model.cheat then
-                        case model.secret of
-                            Domain.Core.Secret secret ->
-                                Html.div [ Attr.css [ Css.displayFlex, defaultGap ] ]
-                                    [ secret |> List.map UI.Pin.display |> pinBox
-                                    , Html.button
-                                        [ Attr.css [ Css.height <| Css.rem 2 ]
-                                        ]
-                                        [ Html.text "Hide" ]
-                                    ]
-
-                      else
-                        Html.button
-                            [ Attr.css [ Css.width <| Css.pct 100, Css.height <| Css.rem 2 ]
-                            ]
-                            [ Html.text "Cheat" ]
-                    ]
+                [ UI.Typography.title "Mastermind"
+                , secretView model
                 , verticalSeparator
                 , Domain.Pin.all
                     |> List.map (actionPin model.selected)
-                    |> pinBox
-                , viewInput model
+                    |> UI.Pin.pinBox
+                , UI.KeyInput.view
+                    { onCheck = Check
+                    , onSlotClick = PlacedAt
+                    }
+                    model.input
                 , verticalSeparator
                 , Html.div
                     [ Attr.css
                         [ Css.displayFlex
                         , Css.flexDirection Css.column
-                        , defaultGap
+                        , UI.Flex.defaultGap
                         ]
                     ]
                     (model.results |> List.map viewResult)
@@ -185,59 +175,42 @@ view model =
     }
 
 
-title : Html.Html msg
-title =
-    Html.h1
-        [ Attr.css
-            [ Css.textTransform Css.uppercase
-            , Css.margin Css.zero
-            , Css.fontSize <| Css.rem 2.5
-            , Css.textAlign Css.center
-            ]
+secretView : Model -> Html Msg
+secretView model =
+    Html.div [ onClick Cheat ]
+        [ if model.cheat then
+            Html.div
+                [ Attr.css
+                    [ Css.displayFlex
+                    , UI.Flex.defaultGap
+                    ]
+                ]
+                [ model.secret
+                    |> Domain.Secret.open
+                    |> List.map UI.Pin.display
+                    |> UI.Pin.pinBox
+                , Html.button
+                    [ Attr.css [ Css.height <| Css.rem 2 ] ]
+                    [ Html.text "Hide" ]
+                ]
+
+          else
+            Html.button
+                [ Attr.css
+                    [ Css.width <| Css.pct 100
+                    , Css.height <| Css.rem 2
+                    ]
+                ]
+                [ Html.text "Cheat" ]
         ]
-        [ Html.text "Mastermind" ]
 
 
-verticalSeparator : Html.Html msg
+verticalSeparator : Html msg
 verticalSeparator =
     Html.hr [ Attr.css [ Css.width <| Css.pct 100 ] ] []
 
 
-viewInput : Model -> Html.Html Msg
-viewInput model =
-    Html.div
-        [ Attr.css
-            [ Css.displayFlex
-            , defaultGap
-            ]
-        ]
-        [ UI.KeyInput.pins model.input
-            |> List.map selectionPin
-            |> pinBox
-        , Html.button
-            (case UI.KeyInput.parse model.input of
-                Just key ->
-                    [ onClick <| Check key ]
-
-                Nothing ->
-                    [ Attr.disabled True ]
-            )
-            [ Html.text "Check" ]
-        ]
-
-
-selectionPin : ( Int, Maybe Pin ) -> Html.Html Msg
-selectionPin ( position, pin ) =
-    actionablePinSlot position <|
-        case pin of
-            Just it ->
-                UI.Pin.display it
-
-            Nothing ->
-                UI.Pin.slot
-
-
-actionPin : Maybe Pin -> Pin -> Html.Html Msg
+actionPin : Maybe Pin -> Pin -> Html Msg
 actionPin selected current =
     Html.div
         [ Attr.class "action-pin"
@@ -255,49 +228,20 @@ actionPin selected current =
         [ UI.Pin.display current ]
 
 
-viewResult : ( Key, Domain.Core.Result ) -> Html.Html Msg
+viewResult : ( Key, Domain.Core.Result ) -> Html Msg
 viewResult ( Domain.Core.Key key, { rightPlace, wrongPlace } ) =
     Html.div
         [ Attr.css
             [ Css.displayFlex
-            , defaultGap
+            , UI.Flex.defaultGap
             , Css.alignItems Css.center
             ]
         ]
         [ key
             |> List.map UI.Pin.display
-            |> pinBox
-        , Html.div [ Attr.css [ Css.displayFlex, cssGap <| Rem 0.2 ] ]
+            |> UI.Pin.pinBox
+        , Html.div [ Attr.css [ Css.displayFlex, UI.Flex.cssGap <| UI.Flex.Rem 0.2 ] ]
             (List.repeat rightPlace UI.Result.rightPlace
                 ++ List.repeat wrongPlace UI.Result.wrongPlace
             )
         ]
-
-
-pinBox : List (Html.Html Msg) -> Html.Html Msg
-pinBox =
-    Html.div
-        [ Attr.css
-            [ Css.displayFlex
-            , defaultGap
-            ]
-        ]
-
-
-defaultGap : Css.Style
-defaultGap =
-    cssGap <| Rem 1
-
-
-type Rem
-    = Rem Float
-
-
-cssGap : Rem -> Css.Style
-cssGap (Rem it) =
-    Css.property "gap" <| String.fromFloat it ++ "rem"
-
-
-actionablePinSlot : Int -> Html.Html Msg -> Html.Html Msg
-actionablePinSlot position child =
-    Html.div [ onClick <| PlacedAt position ] [ child ]

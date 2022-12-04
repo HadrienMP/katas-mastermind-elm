@@ -1,8 +1,14 @@
-module UI.KeyInput exposing (KeyInput, clear, empty, parse, pins, put)
+module UI.KeyInput exposing (KeyInput, clear, empty, parse, pins, put, view)
 
+import Css
 import Dict exposing (Dict)
 import Domain.Core exposing (Key)
 import Domain.Pin exposing (Pin)
+import Html.Styled as Html exposing (Html)
+import Html.Styled.Attributes as Attr
+import Html.Styled.Events as Events
+import UI.Flex
+import UI.Pin
 
 
 type alias Internal =
@@ -79,3 +85,51 @@ pins : KeyInput -> List ( Int, Maybe Pin )
 pins (KeyInput internal) =
     List.range 0 (internal.size - 1)
         |> List.map (\index -> ( index, Dict.get index internal.content ))
+
+
+
+-- View
+
+
+view :
+    { onCheck : Key -> msg
+    , onSlotClick : Int -> msg
+    }
+    -> KeyInput
+    -> Html msg
+view { onCheck, onSlotClick } input =
+    Html.div
+        [ Attr.css
+            [ Css.displayFlex
+            , UI.Flex.defaultGap
+            ]
+        ]
+        [ pins input
+            |> List.map (selectionPin onSlotClick)
+            |> UI.Pin.pinBox
+        , Html.button
+            (case parse input of
+                Just key ->
+                    [ Events.onClick <| onCheck key ]
+
+                Nothing ->
+                    [ Attr.disabled True ]
+            )
+            [ Html.text "Check" ]
+        ]
+
+
+selectionPin : (Int -> msg) -> ( Int, Maybe Pin ) -> Html msg
+selectionPin onClick ( position, pin ) =
+    actionablePinSlot onClick position <|
+        case pin of
+            Just it ->
+                UI.Pin.display it
+
+            Nothing ->
+                UI.Pin.slot
+
+
+actionablePinSlot : (Int -> msg) -> Int -> Html msg -> Html msg
+actionablePinSlot onClick position child =
+    Html.div [ Events.onClick <| onClick position ] [ child ]
