@@ -18,36 +18,33 @@ suite =
     describe "score"
         [ test "no match" <|
             \_ ->
-                score (Key [ Blue, Red, Green ]) blackWhitePurple
+                Key [ Blue, Red, Green ]
+                    |> score blackWhitePurple
                     |> Expect.equal { rightPlace = 0, wrongPlace = 0 }
         , test "exact match" <|
             \_ ->
-                score
-                    (Key [ Blue, Red, Green ])
-                    (Secret [ Blue, Red, Green ])
+                Key [ Blue, Red, Green ]
+                    |> score (Secret [ Blue, Red, Green ])
                     |> Expect.equal { rightPlace = 3, wrongPlace = 0 }
         , test "one pin off" <|
             \_ ->
-                score
-                    (Key [ Blue, Red, Green ])
-                    (Secret [ Blue, Red, Purple ])
+                Key [ Blue, Red, Green ]
+                    |> score (Secret [ Blue, Red, Purple ])
                     |> Expect.equal { rightPlace = 2, wrongPlace = 0 }
         , test "one pin at the wrong place" <|
             \_ ->
-                score
-                    (Key [ Purple, Red, Green ])
-                    (Secret [ Black, White, Purple ])
+                Key [ Purple, Red, Green ]
+                    |> score (Secret [ Black, White, Purple ])
                     |> Expect.equal { rightPlace = 0, wrongPlace = 1 }
         , test "when the key contains two pins of the same colour and one is in the right place we count only a right place" <|
             \_ ->
-                score
-                    (Key [ Blue, Blue, Green ])
-                    (Secret [ Blue, Red, Purple ])
+                Key [ Blue, Blue, Green ]
+                    |> score (Secret [ Blue, Red, Purple ])
                     |> Expect.equal { rightPlace = 1, wrongPlace = 0 }
         , test "Key pins already matched don't count as in the wrong place" <|
             \_ ->
-                Secret [ Red, Red, Red, Black ]
-                    |> score (Key [ Red, Red, Blue, Blue ])
+                Key [ Red, Red, Blue, Blue ]
+                    |> score (Secret [ Red, Red, Red, Black ])
                     |> Expect.equal { rightPlace = 2, wrongPlace = 0 }
         ]
 
@@ -59,29 +56,25 @@ rightPlaceSuite =
             [ test "no match" <|
                 \_ ->
                     Key [ Blue ]
-                        |> countRightPlace (Secret [ Red ])
-                        |> .count
-                        |> Expect.equal 0
+                        |> score (Secret [ Red ])
+                        |> Expect.equal { rightPlace = 0, wrongPlace = 0 }
             , test "exact match" <|
                 \_ ->
                     Key [ Red ]
-                        |> countRightPlace (Secret [ Red ])
-                        |> .count
-                        |> Expect.equal 1
+                        |> score (Secret [ Red ])
+                        |> Expect.equal { rightPlace = 1, wrongPlace = 0 }
             ]
         , describe "two pins"
             [ test "one match" <|
                 \_ ->
                     Key [ Blue, Blue ]
-                        |> countRightPlace (Secret [ Blue, Red ])
-                        |> .count
-                        |> Expect.equal 1
+                        |> score (Secret [ Blue, Red ])
+                        |> Expect.equal { rightPlace = 1, wrongPlace = 0 }
             , test "exact match" <|
                 \_ ->
                     Key [ Blue, Blue ]
-                        |> countRightPlace (Secret [ Blue, Blue ])
-                        |> .count
-                        |> Expect.equal 2
+                        |> score (Secret [ Blue, Blue ])
+                        |> Expect.equal { rightPlace = 2, wrongPlace = 0 }
             ]
         ]
 
@@ -150,7 +143,3 @@ wrongPlaceSuite =
                     |> countWrongPlace (Secret [ White, White, Purple, Purple ])
                     |> Expect.equal 1
         ]
-
-
-
--- TODO: a pin appearing twice in the secret and wrong place one

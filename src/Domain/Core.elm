@@ -1,29 +1,35 @@
 module Domain.Core exposing
     ( Result
-    , RightPlaceResult
-    , Unmatched
-    , countRightPlace
     , countWrongPlace
     , score
     )
 
 import Domain.Key exposing (Key(..))
 import Domain.Secret exposing (Secret(..))
+import List.Extra
 
 
 type alias Result =
     { rightPlace : Int, wrongPlace : Int }
 
 
-score : Key -> Secret -> Result
-score key secret =
+score : Secret -> Key -> Result
+score secret key =
     let
-        { count, unmatched } =
-            countRightPlace secret key
+        ( unmatchedKey, unmatchedSecret ) =
+            removeExactMatches key secret
     in
-    { rightPlace = count
-    , wrongPlace = countWrongPlace unmatched.secret unmatched.key
+    { rightPlace = Domain.Secret.length secret - Domain.Secret.length unmatchedSecret
+    , wrongPlace = countWrongPlace unmatchedSecret unmatchedKey
     }
+
+
+removeExactMatches : Key -> Secret -> ( Key, Secret )
+removeExactMatches (Key key) (Secret secret) =
+    List.Extra.zip key secret
+        |> List.filter (\( a, b ) -> a /= b)
+        |> List.unzip
+        |> Tuple.mapBoth Key Secret
 
 
 
@@ -69,54 +75,3 @@ removeOnceFromRec end el start =
 
         [] ->
             start
-
-
-
--- Right place
-
-
-type alias Unmatched =
-    { secret : Secret, key : Key }
-
-
-type alias RightPlaceResult =
-    { count : Int, unmatched : Unmatched }
-
-
-countRightPlace : Secret -> Key -> RightPlaceResult
-countRightPlace secret key =
-    countRightPlaceRec key
-        secret
-        { count = 0
-        , unmatched =
-            { secret = Domain.Secret.empty
-            , key = Domain.Key.empty
-            }
-        }
-
-
-countRightPlaceRec :
-    Key
-    -> Secret
-    -> RightPlaceResult
-    -> RightPlaceResult
-countRightPlaceRec (Key key) (Secret secret) acc =
-    case ( key, secret ) of
-        ( keyPin :: restOfKey, secretPin :: restOfSecret ) ->
-            countRightPlaceRec
-                (Key restOfKey)
-                (Secret restOfSecret)
-                (if keyPin == secretPin then
-                    { acc | count = acc.count + 1 }
-
-                 else
-                    { acc
-                        | unmatched =
-                            { secret = Domain.Secret.append secretPin acc.unmatched.secret
-                            , key = Domain.Key.append keyPin acc.unmatched.key
-                            }
-                    }
-                )
-
-        _ ->
-            acc

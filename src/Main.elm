@@ -110,7 +110,7 @@ update msg model =
         Check key ->
             ( { model
                 | results =
-                    ( key, Domain.Core.score key model.secret )
+                    ( key, Domain.Core.score model.secret key )
                         :: model.results
                 , selected = Nothing
                 , input = UI.KeyInput.clear model.input

@@ -1,7 +1,6 @@
 module Domain.Secret exposing
     ( Secret(..)
-    , append
-    , empty
+    , length
     , open
     )
 
@@ -12,16 +11,11 @@ type Secret
     = Secret (List Pin)
 
 
-append : Pin -> Secret -> Secret
-append pin (Secret secret) =
-    Secret <| secret ++ [ pin ]
-
-
-empty : Secret
-empty =
-    Secret []
-
-
 open : Secret -> List Pin
 open (Secret secret) =
     secret
+
+
+length : Secret -> Int
+length =
+    open >> List.length
