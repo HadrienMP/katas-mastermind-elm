@@ -1,4 +1,27 @@
-module Domain.Pin exposing (Pin(..), all)
+module Domain.Pin exposing (KeyPin(..), Pin(..), SecretPin(..), all, equal, openKey, openSecret)
+
+
+type KeyPin
+    = KeyPin Pin
+
+
+openKey : KeyPin -> Pin
+openKey (KeyPin it) =
+    it
+
+
+type SecretPin
+    = SecretPin Pin
+
+
+openSecret : SecretPin -> Pin
+openSecret (SecretPin it) =
+    it
+
+
+equal : KeyPin -> SecretPin -> Bool
+equal (KeyPin a) (SecretPin b) =
+    a == b
 
 
 type Pin

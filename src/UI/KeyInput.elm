@@ -2,8 +2,8 @@ module UI.KeyInput exposing (KeyInput, clear, empty, put, view)
 
 import Css
 import Dict exposing (Dict)
-import Domain.Key exposing (Key(..))
-import Domain.Pin exposing (Pin)
+import Domain.Code exposing (Key)
+import Domain.Pin exposing (KeyPin(..), Pin)
 import Html.Styled as Html exposing (Html)
 import Html.Styled.Attributes as Attr
 import Html.Styled.Events as Events
@@ -64,7 +64,7 @@ parse input =
             (\el acc ->
                 case ( acc, el ) of
                     ( Just list, Just it ) ->
-                        Just <| it :: list
+                        Just <| KeyPin it :: list
 
                     ( Nothing, _ ) ->
                         Nothing
@@ -73,7 +73,6 @@ parse input =
                         Nothing
             )
             (Just [])
-        |> Maybe.map Key
 
 
 clear : KeyInput -> KeyInput

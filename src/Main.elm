@@ -3,10 +3,9 @@ module Main exposing (Model, Msg, main)
 import Browser
 import Browser.Navigation as Nav
 import Css
+import Domain.Code exposing (Key, Secret)
 import Domain.Core
-import Domain.Key
-import Domain.Pin exposing (Pin)
-import Domain.Secret exposing (Secret)
+import Domain.Pin exposing (Pin, SecretPin(..))
 import Html.Styled as Html exposing (Html)
 import Html.Styled.Attributes as Attr
 import Html.Styled.Events exposing (onClick)
@@ -35,7 +34,7 @@ main =
 type alias Model =
     { navkey : Nav.Key
     , url : Url.Url
-    , results : List ( Domain.Key.Key, Domain.Core.Result )
+    , results : List ( Key, { rightPlace : Int, wrongPlace : Int } )
     , input : KeyInput
     , secret : Secret
     , selected : Maybe Pin
@@ -54,13 +53,14 @@ init _ url key =
       , url = url
       , results = []
       , input = UI.KeyInput.empty size
-      , secret = Domain.Secret.Secret []
+      , secret = []
       , selected = Nothing
       , cheat = False
       }
     , (Random.List.choose Domain.Pin.all
         |> Random.map Tuple.first
         |> Random.map (Maybe.withDefault Domain.Pin.Red)
+        |> Random.map SecretPin
       )
         |> List.repeat size
         |> List.foldl
@@ -73,7 +73,6 @@ init _ url key =
                     listGenerator
             )
             (Random.constant [])
-        |> Random.map Domain.Secret.Secret
         |> Random.generate SecretGenerated
     )
 
@@ -81,7 +80,7 @@ init _ url key =
 type Msg
     = PlacedAt Int
     | Selected Pin
-    | Check Domain.Key.Key
+    | Check Key
     | Cheat
     | SecretGenerated Secret
     | UrlRequested Browser.UrlRequest
@@ -185,7 +184,7 @@ secretView model =
                     ]
                 ]
                 [ model.secret
-                    |> Domain.Secret.open
+                    |> List.map Domain.Pin.openSecret
                     |> List.map UI.Pin.display
                     |> UI.Pin.pinBox
                 , Html.button
@@ -227,8 +226,8 @@ actionPin selected current =
         [ UI.Pin.display current ]
 
 
-viewResult : ( Domain.Key.Key, Domain.Core.Result ) -> Html Msg
-viewResult ( Domain.Key.Key key, { rightPlace, wrongPlace } ) =
+viewResult : ( Key, { rightPlace : Int, wrongPlace : Int } ) -> Html Msg
+viewResult ( key, { rightPlace, wrongPlace } ) =
     Html.div
         [ Attr.css
             [ Css.displayFlex
@@ -237,6 +236,7 @@ viewResult ( Domain.Key.Key key, { rightPlace, wrongPlace } ) =
             ]
         ]
         [ key
+            |> List.map Domain.Pin.openKey
             |> List.map UI.Pin.display
             |> UI.Pin.pinBox
         , Html.div [ Attr.css [ Css.displayFlex, UI.Flex.cssGap <| UI.Flex.Rem 0.2 ] ]
